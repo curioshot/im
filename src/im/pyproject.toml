@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "im"
+version = "1.0.0"
+description = "Internet Monitor - Cross-platform connectivity TUI"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+dependencies = [
+    "rich>=13.7",
+    "typer>=0.9",
+    "psutil>=5.9",
+    "distro>=1.8",
+]
+
+[project.optional-dependencies]
+windows = ["wmi>=1.5", "pywin32>=306"]
+dev = ["pytest>=7.0", "ruff>=0.1", "pyinstaller>=6.0", "nuitka>=2.0"]
+
+[project.entry-points]
+console_scripts = { im = "im_entry:app" }
+
+[project.urls]
+Homepage = "https://github.com/user/im"
+Repository = "https://github.com/user/im"
+Issues = "https://github.com/user/im/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["im*", "cli*", "core*", "platform*", "installer*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
