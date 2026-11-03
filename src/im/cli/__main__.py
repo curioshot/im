@@ -29,6 +29,20 @@ app.add_typer(update_app, name="update")
 app.add_typer(history_app, name="history")
 app.add_typer(alerts_app, name="alerts")
 
+
+@app.command("desktop")
+def desktop_cmd(
+    background: bool = typer.Option(False, "--background", "-b", help="Start minimized to tray"),
+    dev: bool = typer.Option(False, "--dev", help="Run in development mode"),
+):
+    """Launch the internet monitor desktop application."""
+    from im.desktop import launch_desktop
+    launch_desktop(background=background, settings=False, dev=dev)
+    if dev:
+        args.append("--dev")
+
+    subprocess.Popen(args)
+
 def _run_monitor_impl(
     interval: float,
     timeout: float,
