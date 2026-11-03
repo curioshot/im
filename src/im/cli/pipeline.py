@@ -180,7 +180,9 @@ class PipelineRenderer:
             time.sleep(0.5)
 
         # Stage 5: Summary
-        success = all(d.status != DepStatus.FAILED for d in missing)
+        # Only fail if REQUIRED dependencies failed
+        failed_required = [d for d in missing if d.status == DepStatus.FAILED and d.required]
+        success = len(failed_required) == 0
         self.console.print(self.render_summary(deps, success))
 
         return success

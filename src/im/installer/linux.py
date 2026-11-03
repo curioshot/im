@@ -3,9 +3,10 @@
 import subprocess
 import shutil
 import sys
+import os
 from typing import List, Dict, Optional
 
-from .base import InstallerInterface, Dependency, DepType, DepStatus
+from .base import InstallerInterface, Dependency, DepType, DepStatus, SudoHelper
 
 
 class LinuxInstaller(InstallerInterface):
@@ -129,7 +130,7 @@ class LinuxInstaller(InstallerInterface):
                 name="psutil",
                 dep_type=DepType.PYTHON,
                 description="Cross-platform system/process utilities",
-                required=False,  # Optional but recommended
+                required=False,
                 package_name="psutil",
                 version_check="python3 -c \"import psutil; print(psutil.__version__)\"",
             ),
@@ -223,41 +224,37 @@ class LinuxInstaller(InstallerInterface):
             return False
 
     def _install_system(self, dep: Dependency) -> bool:
-        """Install system package via package manager."""
+        """Install system package via package manager with proper sudo handling."""
         pm = self.get_package_manager()
         pkg_name = dep.package_name
 
         if pm == "apt":
-            cmd = ["sudo", "apt", "update", "&&", "sudo", "apt", "install", "-y", pkg_name]
-            # Run as shell for &&
             full_cmd = f"sudo apt update && sudo apt install -y {pkg_name}"
-            shell = True
         elif pm == "dnf":
             full_cmd = f"sudo dnf install -y {pkg_name}"
-            shell = True
         elif pm == "pacman":
             full_cmd = f"sudo pacman -S --noconfirm {pkg_name}"
-            shell = True
         elif pm == "zypper":
             full_cmd = f"sudo zypper install -y {pkg_name}"
-            shell = True
         elif pm == "apk":
             full_cmd = f"sudo apk add {pkg_name}"
-            shell = True
         else:
             dep.status = DepStatus.FAILED
             return False
 
         try:
-            result = subprocess.run(
-                full_cmd, shell=shell, capture_output=True, timeout=180,
-            )
+            # Use SudoHelper to handle password prompting
+            result = SudoHelper.run_sudo_shell(full_cmd, f"Enter password to install {pkg_name}:")
             if result.returncode == 0:
                 dep.status = DepStatus.INSTALLED
                 return True
             else:
+                # Show error to user
+                if result.stderr:
+                    print(f"Error installing {pkg_name}: {result.stderr.decode().strip()}")
                 dep.status = DepStatus.FAILED
                 return False
-        except Exception:
+        except Exception as e:
+            print(f"Failed to install {pkg_name}: {e}")
             dep.status = DepStatus.FAILED
             return False

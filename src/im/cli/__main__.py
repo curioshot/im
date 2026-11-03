@@ -5,7 +5,7 @@ import time
 import typer
 from rich.console import Console
 
-from im.cli.commands import install_app, doctor_app, config_app, update_app
+from im.cli.commands import install_app, doctor_app, config_app, update_app, history_app, alerts_app
 from im.cli.pipeline import PipelineRenderer
 from im.installer import get_installer
 from im.core.config import config
@@ -22,12 +22,12 @@ app = typer.Typer(
 
 
 # Add subcommands
-from im.cli.commands import install_app, doctor_app, config_app, update_app
 app.add_typer(install_app, name="install")
 app.add_typer(doctor_app, name="doctor")
 app.add_typer(config_app, name="config")
 app.add_typer(update_app, name="update")
-
+app.add_typer(history_app, name="history")
+app.add_typer(alerts_app, name="alerts")
 
 def _run_monitor_impl(
     interval: float,
@@ -178,12 +178,6 @@ def run_cmd(
     # Actual execution is handled in callback
 
 
-# Add subcommands
-from im.cli.commands import install_app, doctor_app, config_app, update_app
-app.add_typer(install_app, name="install")
-app.add_typer(doctor_app, name="doctor")
-app.add_typer(config_app, name="config")
-app.add_typer(update_app, name="update")
 
 
 @app.callback(invoke_without_command=True)

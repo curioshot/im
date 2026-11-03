@@ -7,7 +7,7 @@ import os
 import ctypes
 from typing import Dict, List
 
-from .base import InstallerInterface, Dependency, DepType, DepStatus
+from .base import InstallerInterface, Dependency, DepType, DepStatus, WindowsAdminHelper
 
 
 class WindowsInstaller(InstallerInterface):
@@ -179,7 +179,12 @@ class WindowsInstaller(InstallerInterface):
             return False
 
         try:
-            result = subprocess.run(cmd, capture_output=True, timeout=180)
+            # Use WindowsAdminHelper for UAC elevation if needed
+            if not WindowsAdminHelper.is_admin():
+                result = WindowsAdminHelper.run_admin_shell(" ".join(cmd))
+            else:
+                result = subprocess.run(cmd, capture_output=True, timeout=180)
+            
             if result.returncode == 0:
                 dep.status = DepStatus.INSTALLED
                 return True
@@ -207,10 +212,19 @@ class WindowsInstaller(InstallerInterface):
                 urllib.request.urlretrieve(url, installer_path)
             
             # Silent install with WinPcap compatibility mode
-            result = subprocess.run(
-                [installer_path, "/S", "/winpcap_mode=yes"],
-                capture_output=True, timeout=180,
-            )
+            # Need admin for Npcap install
+            if WindowsAdminHelper.is_admin():
+                result = subprocess.run(
+                    [installer_path, "/S", "/winpcap_mode=yes"],
+                    capture_output=True, timeout=180,
+                )
+            else:
+                # Use UAC elevation
+                cmd = f"Start-Process '{installer_path}' -ArgumentList '/S', '/winpcap_mode=yes' -Verb RunAs -Wait"
+                result = subprocess.run(
+                    ["powershell", "-Command", cmd],
+                    capture_output=True, timeout=180,
+                )
             os.unlink(installer_path)
             
             if result.returncode == 0:

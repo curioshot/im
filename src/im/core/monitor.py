@@ -28,6 +28,7 @@ from rich.text import Text
 
 # Import platform abstraction
 from im.platform import get_platform
+from im.core.history import get_history_manager
 
 
 # Constants from original netmon.py
@@ -52,7 +53,7 @@ DEV_SCAN_INTERVAL = 10.0
 DEVICE_ROWS = 6
 
 
-def tcp_probe(host: str, port: int, timeout: float) -> Tuple[bool, Optional[float], str]:
+def tcp_probe(host, port, timeout):
     start = time.perf_counter()
     try:
         with socket.create_connection((host, port), timeout=timeout):
@@ -61,7 +62,7 @@ def tcp_probe(host: str, port: int, timeout: float) -> Tuple[bool, Optional[floa
         return False, None, type(exc).__name__
 
 
-def http_probe(timeout: float) -> Tuple[bool, Optional[float], str]:
+def http_probe(timeout):
     start = time.perf_counter()
     try:
         req = Request(HTTP_URL, method="GET", headers={"User-Agent": "netmon"})
@@ -74,7 +75,7 @@ def http_probe(timeout: float) -> Tuple[bool, Optional[float], str]:
         return False, None, type(exc).__name__
 
 
-def run_probes(probes: List[Tuple[str, str, int]], timeout: float) -> Dict[str, Tuple[bool, Optional[float], str]]:
+def run_probes(probes, timeout):
     with ThreadPoolExecutor(max_workers=max(len(probes), 1)) as pool:
         futures = {
             name: pool.submit(tcp_probe, host, port, timeout)
@@ -83,7 +84,7 @@ def run_probes(probes: List[Tuple[str, str, int]], timeout: float) -> Dict[str, 
         return {name: future.result() for name, future in futures.items()}
 
 
-def local_ip() -> str:
+def local_ip():
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
             sock.connect(("1.1.1.1", 80))
@@ -92,7 +93,7 @@ def local_ip() -> str:
         return "-"
 
 
-def fmt_bytes(value: Optional[float]) -> str:
+def fmt_bytes(value):
     if value is None:
         return "-"
     value = max(float(value), 0.0)
@@ -105,7 +106,7 @@ def fmt_bytes(value: Optional[float]) -> str:
     return f"{value:,.1f} {unit}" if value >= 100 else f"{value:.2f} {unit}"
 
 
-def valid_mac(mac: str) -> bool:
+def valid_mac(mac):
     if not mac:
         return False
     parts = mac.split(":")
@@ -115,26 +116,26 @@ def valid_mac(mac: str) -> bool:
     return uniq not in ({"00"}, {"ff"})
 
 
-def fmt_duration(seconds: float) -> str:
+def fmt_duration(seconds):
     seconds = int(max(seconds, 0))
     h, rem = divmod(seconds, 3600)
     m, s = divmod(rem, 60)
     return f"{h:02d}:{m:02d}:{s:02d}"
 
 
-def fmt_ms(value: Optional[float]) -> str:
+def fmt_ms(value):
     if value is None:
         return "-"
     return f"{value:.0f} ms" if value < 1000 else f"{value / 1000:.1f} s"
 
 
-def fmt_speed(mbps: Optional[float]) -> str:
+def fmt_speed(mbps):
     if mbps is None:
         return "-"
     return f"{mbps * 1000:.0f} kbps" if mbps < 1 else f"{mbps:.1f} Mbps"
 
 
-def fmt_mb(mbps: Optional[float]) -> str:
+def fmt_mb(mbps):
     if mbps is None:
         return "-"
     value = mbps / 8.0
@@ -143,12 +144,12 @@ def fmt_mb(mbps: Optional[float]) -> str:
     return f"{value:.2f} MB/s" if value < 10 else f"{value:.1f} MB/s"
 
 
-def speed_glyph(mbps: float, scale: float) -> str:
+def speed_glyph(mbps, scale):
     frac = min(max(mbps / scale, 0.0), 1.0) ** 0.5
     return BLOCKS[1 + int(frac * (len(BLOCKS) - 2))]
 
 
-def latency_glyph(latency: Optional[float], scale: float) -> str:
+def latency_glyph(latency, scale):
     frac = min(max((latency or 0) / scale, 0.0), 1.0)
     return BLOCKS[1 + int(frac * (len(BLOCKS) - 2))]
 
@@ -156,7 +157,7 @@ def latency_glyph(latency: Optional[float], scale: float) -> str:
 class Monitor:
     """Main connectivity monitor."""
 
-    def __init__(self, interval: float, timeout: float):
+    def __init__(self, interval, timeout):
         self.interval = interval
         self.timeout = timeout
         self.fast_timeout = min(timeout, max(interval, 0.5))
@@ -209,7 +210,7 @@ class Monitor:
             if next_at < time.monotonic():
                 next_at = time.monotonic()
 
-    def _tick(self, tick: int):
+    def _tick(self, tick):
         try:
             results = run_probes(FAST_PROBES, self.fast_timeout)
             lat = min((ms for ok, ms, _ in results.values() if ok and ms is not None), default=None)
@@ -233,6 +234,8 @@ class Monitor:
                     stamp = datetime.now().strftime("%H:%M:%S")
                     self.events.append((stamp, "back online" if self.up else "connection lost"))
                     del self.events[:-6]
+            # Record to history
+            get_history_manager().record_check(self.up, lat, results)
         except Exception as exc:
             with self.lock:
                 self.fast_results = {"error": (False, None, type(exc).__name__)}
@@ -263,7 +266,7 @@ class Monitor:
             with self.lock:
                 self.deep_busy = False
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self):
         with self.lock:
             results = dict(self.fast_results)
             results.update(self.deep_results)
@@ -292,7 +295,7 @@ class Monitor:
             self.min_lat = self.max_lat = None
             self.events.clear()
 
-    def change_interval(self, factor: float) -> float:
+    def change_interval(self, factor):
         with self.lock:
             value = min(max(self.interval * factor, 0.1), 60.0)
             self.interval = value
@@ -303,7 +306,7 @@ class Monitor:
 class SpeedTester:
     """Continuous speed test."""
 
-    def __init__(self, enabled: bool, interval: float, gate=None, upload_every: float = 30.0):
+    def __init__(self, enabled, interval, gate=None, upload_every=30.0):
         self.enabled = enabled
         self.interval = max(interval, 0.5)
         self.gate = gate
@@ -511,7 +514,7 @@ class SpeedTester:
                     self._last_publish = time.monotonic()
             time.sleep(self.upload_every)
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self):
         with self.lock:
             return {
                 "enabled": self.enabled,
@@ -529,7 +532,7 @@ class SpeedTester:
 class DeviceMonitor:
     """Monitor LAN devices."""
 
-    def __init__(self, scan_every: float = DEV_SCAN_INTERVAL, enable_dns: bool = False):
+    def __init__(self, scan_every=DEV_SCAN_INTERVAL, enable_dns=False):
         self.scan_every = scan_every
         self.enable_dns = enable_dns
         self.lock = threading.Lock()
@@ -570,7 +573,7 @@ class DeviceMonitor:
                 if entry["ip"] not in self.first_seen:
                     self.first_seen[entry["ip"]] = now
                     pending.append(entry["ip"])
-            self.entries = scanned
+                self.entries = scanned
         if not scanned:
             if shutil.which("ip") is None:
                 note = "pkg install iproute2 (or root) to list devices"
@@ -584,7 +587,7 @@ class DeviceMonitor:
                 with self.lock:
                     self.hostnames[ip] = name
 
-    def _resolve_name(self, ip: str) -> Optional[str]:
+    def _resolve_name(self, ip):
         def lookup():
             try:
                 return socket.gethostbyaddr(ip)[0]
@@ -619,7 +622,7 @@ class DeviceMonitor:
             if not self.dns_note:
                 self.dns_note = "browsing log ended (root/admin needed)"
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self):
         with self.lock:
             entries = sorted(
                 self.entries,
@@ -647,7 +650,7 @@ class DeviceMonitor:
 class Traffic:
     """Per-interface traffic monitor."""
 
-    def __init__(self, poll: float = 1.0, keep: int = 4):
+    def __init__(self, poll=1.0, keep=4):
         self.poll = poll
         self.keep = keep
         self.lock = threading.Lock()
@@ -692,7 +695,7 @@ class Traffic:
                         )
                 self.prev = current
 
-    def snapshot(self) -> List[Dict[str, Any]]:
+    def snapshot(self):
         rows = []
         with self.lock:
             for name, (rx_rate, tx_rate) in list(self.smoothed.items()):

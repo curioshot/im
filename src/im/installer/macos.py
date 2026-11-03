@@ -6,7 +6,7 @@ import sys
 import os
 from typing import Dict, List
 
-from .base import InstallerInterface, Dependency, DepType, DepStatus
+from .base import InstallerInterface, Dependency, DepType, DepStatus, MacOSSudoHelper
 
 
 class MacOSInstaller(InstallerInterface):
@@ -136,6 +136,7 @@ class MacOSInstaller(InstallerInterface):
 
         pkg_name = dep.package_name
         try:
+            # Homebrew packages don't need sudo
             result = subprocess.run(
                 ["brew", "install", pkg_name],
                 capture_output=True, timeout=180,
@@ -143,9 +144,13 @@ class MacOSInstaller(InstallerInterface):
             if result.returncode == 0:
                 dep.status = DepStatus.INSTALLED
                 return True
-            dep.status = DepStatus.FAILED
-            return False
-        except Exception:
+            else:
+                if result.stderr:
+                    print(f"Error installing {pkg_name}: {result.stderr.decode().strip()}")
+                dep.status = DepStatus.FAILED
+                return False
+        except Exception as e:
+            print(f"Failed to install {pkg_name}: {e}")
             dep.status = DepStatus.FAILED
             return False
 
