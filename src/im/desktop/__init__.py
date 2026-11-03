@@ -127,7 +127,7 @@ class DesktopApp:
         stats_frame = tk.Frame(self.scrollable_frame, bg="#ecf0f1")
         stats_frame.pack(fill=tk.X, pady=10)
 
-        self.status_card = self._create_stat_card(stats_frame, "Status", "Initializing...", "red")
+        self.status_card = self._create_stat_card(stats_frame, "Status", "Starting...", "blue")
         self.latency_card = self._create_stat_card(stats_frame, "Latency", "N/A", "blue")
         self.download_card = self._create_stat_card(stats_frame, "Download", "N/A", "green")
         self.upload_card = self._create_stat_card(stats_frame, "Upload", "N/A", "orange")
@@ -216,7 +216,7 @@ class DesktopApp:
             text=f"{self.status}",
             fg="#2ecc71" if self.status == "Online" else "#e74c3c",
         )
-        self.status_card.value_label.config(text=self.latency if self.latency else "N/A")
+        self.status_card.value_label.config(text=self.status)
         self.latency_card.value_label.config(text=self.latency if self.latency else "N/A")
         self.download_card.value_label.config(
             text=f"{self.download:.1f} Mbps" if self.download else "N/A"
@@ -248,20 +248,23 @@ class DesktopApp:
         self.timeline_canvas.create_line(40, height - 30, width - 10, height - 30, fill="#bdc3c7", width=1)
 
         # Draw latency history
-        checks = self.checks_list[-30:]  # Last 30 checks
-        if len(checks) < 2:
+        samples = self.checks_list[-30:]  # Last 30 samples
+        if len(samples) < 2:
             return
 
-        max_latency = max((c.latency_ms or 0) for c in checks if c.latency_ms)
+        max_latency = max((lat for up, lat in samples if lat is not None), default=0)
         if max_latency == 0:
             max_latency = 100
 
-        x_step = (width - 50) / (len(checks) - 1) if len(checks) > 1 else 0
+        x_step = (width - 50) / (len(samples) - 1) if len(samples) > 1 else 0
 
         points = []
-        for i, check in enumerate(checks):
+        for i, (up, lat) in enumerate(samples):
             x = 40 + i * x_step
-            y = height - 30 - (check.latency_ms or 0) / max_latency * (height - 40)
+            if lat is not None:
+                y = height - 30 - lat / max_latency * (height - 40)
+            else:
+                y = height - 30  # Bottom for down/failed probes
             points.append((x, y))
 
         # Draw line
@@ -291,11 +294,10 @@ class DesktopApp:
         """Update internal state from monitor data."""
         self.status = "Online" if data.get("up") else "Offline"
         self.latency = data.get("avg_lat")
-        self.download = None  # Will be updated from speed test
-        self.upload = None
-        self.checks_list = data.get("checks", [])
+        # download/upload are set separately from speed test data via update_speed()
+        # devices are set separately from devices monitor via update_devices()
+        self.checks_list = data.get("timeline", [])
         self.failed = data.get("failed", 0)
-        self.devices = data.get("devices", [])
 
 
 def _run_monitor(app):
