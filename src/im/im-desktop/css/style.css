@@ -1,0 +1,487 @@
+/* ============================================================================
+   im - Internet Monitor Desktop App
+   Design System: Stitch Design System (Dark Mode)
+   Font: Inter (primary), JetBrains Mono (code/metrics)
+   Border Radius: 8px (ROUND_EIGHT)
+   ═════════════════════════════════════════════════════════════════════════════
+*/
+
+/* ===== CSS VARIABLES - Design System Tokens =================================== */
+
+:root {
+  /* Colors */
+  --color-bg: #1a1a2e;
+  --color-surface: #16213e;
+  --color-surface-bright: #0c0c1f;
+  "surface_container": "#1a1a2e",
+  "surface_container_high": "#28283d",
+
+  /* Text Colors */
+  "text_primary": "#e2e0fc",
+  "text_secondary": "#c0c7d1",
+  "text_muted": "#7f8c8d",
+
+  /* Accent Colors */
+  "accent_primary": "#64b5f6",
+  "accent_success": "#4caf50",
+  "accent_warning": "#ff9800",
+  "accent_error": "#f44336",
+
+  /* Structural */
+  "border": "#37474f",
+  "focus_ring": "#64b5f6",
+}
+
+--color-bg: #1a1a2e;
+--color-surface: #16213e;
+--color-surface-bright: #0c0c1f;
+--color-surface-container: #1a1a2e;
+--color-surface-container-high: #28283d;
+
+--color-text-primary: #e2e0fc;
+--color-text-secondary: #c0c7d1;
+--color-text-muted: #7f8c8d;
+
+--color-accent-primary: #64b5f6;
+--color-accent-success: #4caf50;
+--color-accent-warning: #ff9800;
+--color-accent-error: #f44336;
+
+--color-border: #37474f;
+--color-focus-ring: #64b5f6;
+
+/* Typography */
+--font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+--font-code: 'JetBrains Mono', 'Consolas', 'Monaco', monospace;
+
+/* Spacing */
+--space-xs: 4px;
+--space-sm: 8px;
+--space-md: 16px;
+--space-lg: 24px;
+--space-xl: 32px;
+
+/* Border Radius */
+--radius-sm: 4px;
+--radius-md: 8px;
+--radius-lg: 16px;
+--radius-xl: 24px;
+--radius-full: 9999px;
+
+/* ============================================================================
+   Reset & Base
+   ══════════════════════════════════════════════════════════════════════════ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+body {
+  font-family: var(--font-primary);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   Header
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+.header {
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--color-text-primary);
+}
+
+.logo-icon {
+  font-size: 20px;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ff9800;
+}
+
+.status-dot.online {
+  background-color: #4caf50;
+  box-shadow: 0 0 8px #4caf50;
+}
+
+.status-dot.offline {
+  background-color: #f44336;
+  box-shadow: 0 0 8px #f44336;
+}
+
+.status-text {
+  color: #b0bec5;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Quick Stats */
+.quick-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.stat-mini {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #b0bec5;
+}
+
+.stat-value {
+  font-size: 11px;
+  color: #e2e0fc;
+  font-family: var(--font-code);
+}
+
+/* ============================================================================
+   Main Content
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  padding: var(--space-sm);
+}
+
+/* Panel */
+.panel {
+  background: #16213e;
+  border: 1px solid #37474f;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.panel-header {
+  padding: 16px;
+  border-bottom: 1px solid #37474f;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header h2 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #b0bec5;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.panel-body {
+  padding: 16px;
+}
+
+/* Stat Card */
+.stat-card {
+  background: #16213e;
+  border: 1px solid #37474f;
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #b0bec5;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Timeline Chart */
+.chart-container {
+  width: 100%;
+  height: 300px;
+  background: #16213e;
+  border-radius: 8px;
+  position: relative;
+}
+
+.canvas-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#timeline-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Timeline Legend */
+.timeline-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.probe-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.probe-badge.cloudflare {
+  background: rgba(66, 133, 244, 0.15);
+  color: #4285f4;
+}
+
+.probe-badge.google {
+  background: rgba(26, 115, 232, 0.15);
+  color: #4285f4;
+}
+
+.probe-badge.quad9 {
+  background: rgba(99, 102, 241, 0.15);
+  color: #64b5f6;
+}
+
+.probe-badge.http {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+/* Device List */
+.device-list {
+  margin-top: 16px;
+}
+
+.device-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid #37474f;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.device-row:hover {
+  background: rgba(100, 181, 246, 0.1);
+}
+
+.device-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(100, 181, 246, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-right: 16px;
+}
+
+.device-info {
+  flex: 1;
+}
+
+.device-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #e2e0fc;
+  margin-bottom: 2px;
+}
+
+.device-meta {
+  font-size: 11px;
+  color: #7f8c8d;
+}
+
+.device-state {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.status-badge.live {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.status-badge.degraded {
+  background: rgba(255, 152, 0, 0.15);
+  color: #ff9800;
+}
+
+.status-badge.idle {
+  background: rgba(244, 67, 54, 0.15);
+  color: #f44336;
+}
+
+.device-queries {
+  font-size: 11px;
+  color: #7f8c8d;
+}
+
+/* Tables */
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th, td {
+  padding: 14px 16px;
+  text-align: left;
+}
+
+th {
+  font-size: 13px;
+  font-weight: 600;
+  color: #b0bec5;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+td {
+  color: #e2e0fc;
+  border-bottom: 1px solid rgba(55, 71, 79, 0.5);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover td {
+  background: rgba(100, 181, 246, 0.05);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #37474f;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64b5f6;
+}
+
+/* Text selection */
+::selection {
+  background: rgba(100, 181, 246, 0.3);
+  color: #ffffff;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .right-column {
+    display: none;
+  }
+  
+  .stat-card {
+    min-width: 140px;
+  }
+  
+  .header-right {
+    display: none;
+  }
+}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>im - Internet Monitor</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="logo-icon">🌐</span>
+                    <span class="logo-text">im</span>
+                </div>
+                <div class="status-indicator">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span class="status-text" id="status-text">Starting...</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="quick-stats">
+                    <div class="stat-mini">
+                        <span class="stat-label">↓</span>
+                        <span class="stat-value" id="download-val">- Mbps</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span class="stat-label">↑</span>
+                        <span class="stat-value" id="upload-val">N/A Mbps</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span class="stat-label">Loss</span>
+                        <span class="stat-value" id="loss-val">- %</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <!-- Left Column - Timeline -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>TIMELINE</h2>
+                </div>
+                <div class="timeline-container">
+                    <canvas id="timeline-canvas" width="400" height="300"></canvas>
+                </div>
+                <div class="probes">
+                    <span class="probe-badge probe-cloudflare">Cloudflare</span>
+                    <span class="probe-badge probe-google">Google DNS</span>
+                    <span class="probe-badge probe-quad9">Quad9</span>
+                    <span class="probe-badge probe-http">HTTP 204</span>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="right-column">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>DEVICES</h3>
+                    </div>
+                    <div class="device-table">
+                        <table class="device-table-body">
+                            <thead>
+                                <tr>
+                                    <th>IP</th>
+                                    <th>MAC</th>
+                                    <th>State</th>
+                                    <th>First Seen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="devices-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>RECENT CHECKS</h3>
+                    </div>
+                    <div class="table-container">
+                        <table class="checks-table">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Status</th>
+                                    <th>Latency</th>
+                                </tr>
+                            </thead>
+                            <tbody id="checks-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
