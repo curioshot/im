@@ -37,11 +37,7 @@ def desktop_cmd(
 ):
     """Launch the internet monitor desktop application."""
     from im.desktop import launch_desktop
-    launch_desktop(background=background, settings=False, dev=dev)
-    if dev:
-        args.append("--dev")
-
-    subprocess.Popen(args)
+    launch_desktop(background=background, dev=dev)
 
 def _run_monitor_impl(
     interval: float,
