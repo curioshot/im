@@ -3,19 +3,25 @@
 import socket
 import ssl
 import time
-import dns.resolver
-import dns.message
-import dns.query
-import dns.flags
 import threading
 import subprocess
 import re
 from typing import Dict, List, Optional, Tuple, Any, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor, Future
 import ipaddress
+
+# Optional DNS dependencies
+try:
+    import dns.resolver
+    import dns.message
+    import dns.query
+    import dns.flags
+    HAS_DNS = True
+except ImportError:
+    HAS_DNS = False
 
 
 class ProbeType(Enum):
@@ -188,6 +194,8 @@ class DNSProbe(BaseProbe):
     
     def __init__(self, timeout: float = 5.0, resolver_ip: Optional[str] = None):
         super().__init__(timeout)
+        if not HAS_DNS:
+            raise ImportError("dnspython is required for DNS probe. Install with: pip install dnspython")
         self.resolver = dns.resolver.Resolver()
         self.resolver.timeout = timeout
         self.resolver.lifetime = timeout
@@ -225,6 +233,8 @@ class DOHProbe(BaseProbe):
     
     def __init__(self, timeout: float = 5.0, doh_url: str = "https://cloudflare-dns.com/dns-query"):
         super().__init__(timeout)
+        if not HAS_DNS:
+            raise ImportError("dnspython is required for DoH probe. Install with: pip install dnspython")
         self.doh_url = doh_url
     
     def probe(self, target: str, record_type: str = 'A', **kwargs) -> ProbeResult:
@@ -239,7 +249,7 @@ class DOHProbe(BaseProbe):
             wire = query.to_wire()
             b64 = base64.urlsafe_b64encode(wire).decode().rstrip('=')
             
-            url = f"{self.doh_url}?dns={w64}"
+            url = f"{self.doh_url}?dns={b64}"
             req = urllib.request.Request(
                 url,
                 headers={'Accept': 'application/dns-message'}
@@ -280,6 +290,8 @@ class DOTProbe(BaseProbe):
     
     def __init__(self, timeout: float = 5.0, dot_host: str = "1.1.1.1", dot_port: int = 853):
         super().__init__(timeout)
+        if not HAS_DNS:
+            raise ImportError("dnspython is required for DoT probe. Install with: pip install dnspython")
         self.dot_host = dot_host
         self.dot_port = dot_port
     
@@ -489,14 +501,29 @@ class ProbeManager:
     def _register_default_probes(self):
         self.register_probe(TCPProbe(self.default_timeout))
         self.register_probe(UDPProbe(self.default_timeout))
-        self.register_probe(DNSProbe(self.default_timeout))
-        self.register_probe(HTTPProbe(10.0))
-        self.register_probe(TLSProbe(self.default_timeout))
         # ICMP requires root, register but mark as requiring root
         self.register_probe(ICMPProbe(self.default_timeout))
-        # DoH/DoT optional
-        self.register_probe(DOHProbe(self.default_timeout))
-        self.register_probe(DOTProbe(self.default_timeout))
+        # Optional probes that may require additional dependencies
+        try:
+            self.register_probe(DNSProbe(self.default_timeout))
+        except ImportError:
+            pass
+        try:
+            self.register_probe(HTTPProbe(10.0))
+        except ImportError:
+            pass
+        try:
+            self.register_probe(TLSProbe(self.default_timeout))
+        except ImportError:
+            pass
+        try:
+            self.register_probe(DOHProbe(self.default_timeout))
+        except ImportError:
+            pass
+        try:
+            self.register_probe(DOTProbe(self.default_timeout))
+        except ImportError:
+            pass
     
     def register_probe(self, probe: BaseProbe):
         self.probes[probe.probe_type] = probe
